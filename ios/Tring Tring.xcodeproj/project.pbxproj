@@ -6,8 +6,17 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		D1A2D91B2FA939460031226B /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A2D9152FA939460031226B /* AppDelegate.swift */; };
+		D1A2D91C2FA939460031226B /* BackendClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A2D9172FA939460031226B /* BackendClient.swift */; };
+		D1A2D91E2FA939460031226B /* DeviceState.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A2D9192FA939460031226B /* DeviceState.swift */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		D16681322FA9322E00171E27 /* Tring Tring.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Tring Tring.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		D1A2D9152FA939460031226B /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		D1A2D9172FA939460031226B /* BackendClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackendClient.swift; sourceTree = "<group>"; };
+		D1A2D9192FA939460031226B /* DeviceState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceState.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -34,6 +43,9 @@
 			children = (
 				D16681342FA9322E00171E27 /* Tring Tring */,
 				D16681332FA9322E00171E27 /* Products */,
+				D1A2D9152FA939460031226B /* AppDelegate.swift */,
+				D1A2D9172FA939460031226B /* BackendClient.swift */,
+				D1A2D9192FA939460031226B /* DeviceState.swift */,
 			);
 			sourceTree = "<group>";
 		};
@@ -119,6 +131,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D1A2D91B2FA939460031226B /* AppDelegate.swift in Sources */,
+				D1A2D91C2FA939460031226B /* BackendClient.swift in Sources */,
+				D1A2D91E2FA939460031226B /* DeviceState.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -251,6 +266,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "Tring Tring/Tring Tring.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = FCB4S3W235;
@@ -283,6 +299,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "Tring Tring/Tring Tring.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = FCB4S3W235;
