@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted — 2026-05-04.
+Accepted — 2026-05-04. **Amended by [ADR-0012](0012-sign-in-with-apple.md)** (2026-05-04): the counter is now keyed on `user_id` (not `device_id`) and increments **once per webhook**, not per device fan-out. The original invariants (only on `status='sent'`, transactional with the log row) are preserved at the user level.
 
 ## Context
 

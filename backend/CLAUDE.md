@@ -21,6 +21,7 @@ A single Rust binary (`tring-tring`) that:
 | `src/error.rs` | `AppError` enum with `IntoResponse`; all handlers return `AppResult<T>` |
 | `src/routes/mod.rs` | aggregates route modules |
 | `src/routes/health.rs` | `GET /healthz` |
+| `src/siwa.rs` | `AppleVerifier`: JWKS-cached RS256 verification of Apple identity tokens, plus nonce echo check (see ADR-0012) |
 | `migrations/0001_init.sql` | initial schema (see ADR-0008) |
 
 Future modules (added in subsequent build steps):
@@ -43,6 +44,7 @@ Future modules (added in subsequent build steps):
 5. **The `monthly_usage` counter is only incremented on `status='sent'`.** Never on rate-limited or failed pushes.
 6. **No `unwrap()` outside tests and program startup.** Use `AppError` everywhere else.
 7. **Don't log secrets.** Never log `webhook_secret`, `apns_token`, JWT contents, or `.p8` material.
+8. **SIWA tokens are verified server-side every time.** Construct `AppleVerifier` exactly once at startup. Always use `Validation::new(Algorithm::RS256)` (never `default()`). Always verify `claims.nonce == sha256_hex(raw_nonce)` after decode succeeds. Never log the identity token, the raw nonce, or `apple_user_sub` beyond the first 8 chars.
 
 ## Local dev
 
@@ -85,3 +87,4 @@ docker compose up --build  # http://127.0.0.1:8080, named volume for data
 - [ADR-0009](../docs/adr/0009-containerized-deployment.md) — Docker + `/data` volume
 - [ADR-0010](../docs/adr/0010-litestream-optional.md) — Litestream toggled by env
 - [ADR-0011](../docs/adr/0011-notification-name-validation.md) — name regex
+- [ADR-0012](../docs/adr/0012-sign-in-with-apple.md) — SIWA + per-user URLs

@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted — 2026-05-04.
+**Superseded by [ADR-0012](0012-sign-in-with-apple.md)** (2026-05-04). v1 went without accounts; v1.1 adopted Sign in with Apple as the identity layer. The webhook URL contract changed from `/{secret}/notifications/{name}` to `/{userId}/notifications/{name}`. Read this ADR for historical context only.
 
 ## Context
 

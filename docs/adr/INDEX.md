@@ -14,13 +14,14 @@ Read before proposing architectural changes. ADRs are immutable once accepted â€
 | [0002](0002-rust-axum.md) | Rust + axum for the backend | Accepted |
 | [0003](0003-sqlite-litestream.md) | SQLite (WAL) + Litestream for replication | Accepted (amended by 0010) |
 | [0004](0004-pushcut-compat.md) | Pushcut-compatible webhook format | Accepted |
-| [0005](0005-device-token-auth.md) | Device-token-only auth (no accounts) for v1 | Accepted |
+| [0005](0005-device-token-auth.md) | Device-token-only auth (no accounts) for v1 | Superseded by 0012 |
 | [0006](0006-hetzner-deployment.md) | Hetzner CAX11 + Caddy + systemd as deployment target | Superseded by 0009 |
 | [0007](0007-apns-token-auth.md) | APNs token (`.p8` JWT) auth, not certificate | Accepted |
-| [0008](0008-monthly-usage-counter.md) | Authoritative `monthly_usage` counter, not `COUNT(*)` over the log | Accepted |
+| [0008](0008-monthly-usage-counter.md) | Authoritative `monthly_usage` counter, not `COUNT(*)` over the log | Accepted (amended by 0012) |
 | [0009](0009-containerized-deployment.md) | Containerized deployment via Docker, persistent volume for state | Accepted |
 | [0010](0010-litestream-optional.md) | Litestream replication is optional, controlled by env | Accepted |
 | [0011](0011-notification-name-validation.md) | Notification name in URL: free-form label, regex `[A-Za-z0-9._-]{1,64}` | Accepted |
+| [0012](0012-sign-in-with-apple.md) | Sign in with Apple as the identity layer; per-user webhook URLs | Accepted (supersedes 0005, amends 0008) |
 
 ## When to write a new ADR
 
