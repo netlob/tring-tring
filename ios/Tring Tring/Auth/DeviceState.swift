@@ -5,6 +5,7 @@
 
 import AuthenticationServices
 import Foundation
+import OSLog
 import UIKit
 import UserNotifications
 
@@ -14,7 +15,6 @@ final class DeviceState {
     @MainActor static let shared = DeviceState()
 
     private enum Keys {
-        static let userId = "userId"
         static let webhookUrl = "webhookUrl"
         static let appleUserSub = "appleUserSub"
         static let appleEmail = "appleEmail"
@@ -33,6 +33,8 @@ final class DeviceState {
         case appleRevoked
     }
 
+    private static let log = Logger(subsystem: "dev.sjoerd.tringtring", category: "deviceState")
+
     private(set) var status: AuthStatus = .signedOut
     var lastError: String?
 
@@ -46,6 +48,10 @@ final class DeviceState {
 
     private var pendingIdentityToken: String?
     private var pendingConsumedRawNonce: String?
+
+    var bearerToken: String? {
+        userId
+    }
 
     private var currentApnsEnv: String {
         #if DEBUG
@@ -62,7 +68,7 @@ final class DeviceState {
             defaults.removeObject(forKey: Keys.legacyWebhookSecret)
         }
 
-        self.userId = defaults.string(forKey: Keys.userId)
+        self.userId = KeychainStore.shared.userId
         self.webhookUrl = defaults.string(forKey: Keys.webhookUrl)
         self.appleUserSub = defaults.string(forKey: Keys.appleUserSub)
         self.appleEmail = defaults.string(forKey: Keys.appleEmail)
@@ -167,7 +173,7 @@ final class DeviceState {
         } catch {
             let described = describe(error)
             lastError = described
-            print("registration failed: \(described)")
+            Self.log.error("registration failed: \(described, privacy: .public)")
             // Stay in .signedInPendingDevice so the Retry button can re-attempt.
             status = .signedInPendingDevice
         }
@@ -216,7 +222,7 @@ final class DeviceState {
         do {
             state = try await provider.credentialState(forUserID: sub)
         } catch {
-            print("credentialState error: \(error.localizedDescription)")
+            Self.log.error("credentialState error: \(error.localizedDescription, privacy: .public)")
             return
         }
 
@@ -240,13 +246,18 @@ final class DeviceState {
 
     func signOutLocally() {
         let defaults = UserDefaults.standard
-        defaults.removeObject(forKey: Keys.userId)
         defaults.removeObject(forKey: Keys.webhookUrl)
         defaults.removeObject(forKey: Keys.appleUserSub)
         defaults.removeObject(forKey: Keys.appleEmail)
         defaults.removeObject(forKey: Keys.lastApnsToken)
         defaults.removeObject(forKey: Keys.lastRegisteredApiBase)
         defaults.removeObject(forKey: Keys.lastRegisteredApnsEnv)
+
+        do {
+            try KeychainStore.shared.deleteUserId()
+        } catch {
+            Self.log.error("keychain userId delete failed during sign-out: \(error.localizedDescription, privacy: .public)")
+        }
 
         self.userId = nil
         self.webhookUrl = nil
@@ -263,10 +274,15 @@ final class DeviceState {
 
     private func persistRegistration(response: RegisterResponse, base: String, env: String) {
         let defaults = UserDefaults.standard
-        defaults.set(response.userId, forKey: Keys.userId)
         defaults.set(response.webhookUrl, forKey: Keys.webhookUrl)
         defaults.set(base, forKey: Keys.lastRegisteredApiBase)
         defaults.set(env, forKey: Keys.lastRegisteredApnsEnv)
+
+        do {
+            try KeychainStore.shared.setUserId(response.userId)
+        } catch {
+            Self.log.error("keychain userId write failed: \(error.localizedDescription, privacy: .public)")
+        }
 
         self.userId = response.userId
         self.webhookUrl = response.webhookUrl
@@ -276,10 +292,15 @@ final class DeviceState {
 
     private func clearRegistration() {
         let defaults = UserDefaults.standard
-        defaults.removeObject(forKey: Keys.userId)
         defaults.removeObject(forKey: Keys.webhookUrl)
         defaults.removeObject(forKey: Keys.lastRegisteredApiBase)
         defaults.removeObject(forKey: Keys.lastRegisteredApnsEnv)
+
+        do {
+            try KeychainStore.shared.deleteUserId()
+        } catch {
+            Self.log.error("keychain userId delete failed during clearRegistration: \(error.localizedDescription, privacy: .public)")
+        }
 
         self.userId = nil
         self.webhookUrl = nil
