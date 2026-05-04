@@ -50,8 +50,8 @@ async fn main() -> anyhow::Result<()> {
     let db = db::connect(&db_url).await?;
     tracing::info!("database ready (WAL mode, migrations applied)");
 
-    let apns = ApnsClient::new(&cfg.apns)
-        .map_err(|e| anyhow::anyhow!("apns client init failed: {e}"))?;
+    let apns =
+        ApnsClient::new(&cfg.apns).map_err(|e| anyhow::anyhow!("apns client init failed: {e}"))?;
     tracing::info!("apns client initialized");
 
     let rate_limiter = Arc::new(RateLimiter::new(cfg.rate_limit_per_minute));
@@ -62,7 +62,9 @@ async fn main() -> anyhow::Result<()> {
     if litestream_enabled {
         tracing::info!("litestream: enabled (replication active out-of-process)");
     } else {
-        tracing::warn!("litestream: disabled — set LITESTREAM_REPLICA_URL to enable off-host backups");
+        tracing::warn!(
+            "litestream: disabled — set LITESTREAM_REPLICA_URL to enable off-host backups"
+        );
     }
 
     let _retention_handle = retention::spawn(db.clone());
@@ -79,7 +81,10 @@ async fn main() -> anyhow::Result<()> {
     let app = Router::new()
         .route("/healthz", get(routes::health::healthz))
         .route("/v1/devices", post(routes::devices::register_device))
-        .route("/v1/devices/:secret", get(routes::devices::get_device_by_secret))
+        .route(
+            "/v1/devices/:secret",
+            get(routes::devices::get_device_by_secret),
+        )
         .route(
             "/:secret/notifications/:name",
             post(routes::notify::notify_post).get(routes::notify::notify_get),

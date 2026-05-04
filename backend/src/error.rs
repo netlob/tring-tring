@@ -49,11 +49,17 @@ impl IntoResponse for AppError {
             AppError::DeviceGone => (StatusCode::GONE, json!({"error": "device unregistered"})),
             AppError::ApnsRejected { status, reason } => {
                 tracing::warn!(apns_status = status, apns_reason = %reason, "apns rejected push");
-                (StatusCode::BAD_GATEWAY, json!({"error": "apns rejected", "apnsReason": reason}))
+                (
+                    StatusCode::BAD_GATEWAY,
+                    json!({"error": "apns rejected", "apnsReason": reason}),
+                )
             }
             AppError::ApnsTransport(msg) => {
                 tracing::error!(error = %msg, "apns transport error");
-                (StatusCode::BAD_GATEWAY, json!({"error": "apns transport error"}))
+                (
+                    StatusCode::BAD_GATEWAY,
+                    json!({"error": "apns transport error"}),
+                )
             }
             AppError::Sqlx(e) => {
                 tracing::error!(error = %e, "database error");

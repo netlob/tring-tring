@@ -179,11 +179,14 @@ impl<'a> serde::Serialize for OurPayload<'a> {
         use serde::ser::SerializeMap;
 
         // Re-serialize the inner aps as a Value so we can splice extra keys in.
-        let mut aps_value = serde_json::to_value(&self.inner.aps)
-            .map_err(serde::ser::Error::custom)?;
+        let mut aps_value =
+            serde_json::to_value(&self.inner.aps).map_err(serde::ser::Error::custom)?;
         if let serde_json::Value::Object(ref mut map) = aps_value {
             if let Some(level) = self.interruption_level {
-                map.insert("interruption-level".into(), serde_json::Value::String(level.into()));
+                map.insert(
+                    "interruption-level".into(),
+                    serde_json::Value::String(level.into()),
+                );
             }
             if let Some(tid) = self.thread_id {
                 map.insert("thread-id".into(), serde_json::Value::String(tid.into()));

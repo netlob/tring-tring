@@ -163,7 +163,10 @@ fn validate_apns_token(token: &str) -> AppResult<()> {
             "apnsToken must be 64-128 hex chars".into(),
         ));
     }
-    if !token.bytes().all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b)) {
+    if !token
+        .bytes()
+        .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
+    {
         return Err(AppError::BadRequest(
             "apnsToken must be lowercase hex".into(),
         ));

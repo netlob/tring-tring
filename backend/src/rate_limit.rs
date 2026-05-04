@@ -58,7 +58,11 @@ fn current_month_utc() -> String {
 }
 
 fn short_id(device_id: &str) -> &str {
-    let end = device_id.char_indices().nth(8).map(|(i, _)| i).unwrap_or(device_id.len());
+    let end = device_id
+        .char_indices()
+        .nth(8)
+        .map(|(i, _)| i)
+        .unwrap_or(device_id.len());
     &device_id[..end]
 }
 

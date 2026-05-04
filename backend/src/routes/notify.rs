@@ -110,7 +110,9 @@ pub async fn notify_post(
     Path((secret, name)): Path<(String, String)>,
     payload: Option<Json<NotifyBody>>,
 ) -> AppResult<Json<Value>> {
-    let input = payload.map(|Json(b)| NotifyInput::from(b)).unwrap_or_default();
+    let input = payload
+        .map(|Json(b)| NotifyInput::from(b))
+        .unwrap_or_default();
     process_send(state, secret, name, input).await
 }
 
