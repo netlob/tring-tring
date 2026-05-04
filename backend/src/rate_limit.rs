@@ -29,12 +29,15 @@ impl RateLimiter {
         }
     }
 
-    pub fn check(&self, device_id: &str) -> AppResult<()> {
-        let limiter = if let Some(existing) = self.buckets.get(device_id) {
+    /// In-memory token-bucket check keyed on the caller-supplied identifier.
+    /// Per ADR-0012, callers pass `user_id`; the limiter itself is opaque to
+    /// the meaning of the key.
+    pub fn check(&self, key: &str) -> AppResult<()> {
+        let limiter = if let Some(existing) = self.buckets.get(key) {
             existing.clone()
         } else {
             self.buckets
-                .entry(device_id.to_string())
+                .entry(key.to_string())
                 .or_insert_with(|| Arc::new(GovRateLimiter::direct(self.quota)))
                 .clone()
         };
@@ -42,7 +45,7 @@ impl RateLimiter {
         match limiter.check() {
             Ok(()) => Ok(()),
             Err(_) => {
-                tracing::debug!(device_prefix = %short_id(device_id), "rate limited");
+                tracing::debug!(user_prefix = %short_id(key), "rate limited");
                 Err(AppError::RateLimited)
             }
         }
@@ -57,34 +60,29 @@ fn current_month_utc() -> String {
         .unwrap_or_else(|_| "0000-00".to_string())
 }
 
-fn short_id(device_id: &str) -> &str {
-    let end = device_id
-        .char_indices()
-        .nth(8)
-        .map(|(i, _)| i)
-        .unwrap_or(device_id.len());
-    &device_id[..end]
+fn short_id(id: &str) -> &str {
+    let end = id.char_indices().nth(8).map(|(i, _)| i).unwrap_or(id.len());
+    &id[..end]
 }
 
 pub async fn check_monthly_quota(
     pool: &sqlx::SqlitePool,
-    device_id: &str,
+    user_id: &str,
     monthly_quota: u64,
 ) -> AppResult<()> {
     let month = current_month_utc();
 
-    let count: Option<i64> = sqlx::query_scalar(
-        "SELECT sent_count FROM monthly_usage WHERE device_id = ? AND month = ?",
-    )
-    .bind(device_id)
-    .bind(&month)
-    .fetch_optional(pool)
-    .await?;
+    let count: Option<i64> =
+        sqlx::query_scalar("SELECT sent_count FROM monthly_usage WHERE user_id = ? AND month = ?")
+            .bind(user_id)
+            .bind(&month)
+            .fetch_optional(pool)
+            .await?;
 
     let used = count.unwrap_or(0).max(0) as u64;
     if used >= monthly_quota {
         tracing::info!(
-            device_prefix = %short_id(device_id),
+            user_prefix = %short_id(user_id),
             month = %month,
             used,
             quota = monthly_quota,
@@ -95,42 +93,52 @@ pub async fn check_monthly_quota(
     Ok(())
 }
 
-pub async fn record_notification(
+/// Insert a single row into notifications_log. Use one call per device on
+/// a fan-out webhook. Returns immediately on insert (no transaction).
+#[allow(clippy::too_many_arguments)]
+pub async fn record_log_row(
     pool: &sqlx::SqlitePool,
-    device_id: &str,
+    user_id: &str,
+    device_id: Option<&str>,
     name: Option<&str>,
     status: &str,
     apns_status: Option<i64>,
     apns_reason: Option<&str>,
     now_unix: i64,
 ) -> sqlx::Result<()> {
-    let mut tx = pool.begin().await?;
-
     sqlx::query(
-        "INSERT INTO notifications_log (device_id, name, status, apns_status, apns_reason, sent_at) \
-         VALUES (?, ?, ?, ?, ?, ?)",
+        "INSERT INTO notifications_log (user_id, device_id, name, status, apns_status, apns_reason, sent_at) \
+         VALUES (?, ?, ?, ?, ?, ?, ?)",
     )
+    .bind(user_id)
     .bind(device_id)
     .bind(name)
     .bind(status)
     .bind(apns_status)
     .bind(apns_reason)
     .bind(now_unix)
-    .execute(&mut *tx)
+    .execute(pool)
     .await?;
+    Ok(())
+}
 
-    if status == "sent" {
-        let month = current_month_utc();
-        sqlx::query(
-            "INSERT INTO monthly_usage (device_id, month, sent_count) VALUES (?, ?, 1) \
-             ON CONFLICT (device_id, month) DO UPDATE SET sent_count = sent_count + 1",
-        )
-        .bind(device_id)
-        .bind(&month)
-        .execute(&mut *tx)
-        .await?;
-    }
-
-    tx.commit().await?;
+/// UPSERT one increment to monthly_usage for the user / current UTC month.
+/// Call exactly once per webhook, only if at least one device delivery
+/// succeeded (`status='sent'` for at least one fan-out target). Per
+/// ADR-0008-amended: counter increments once per webhook, not per device.
+pub async fn increment_monthly_usage(
+    pool: &sqlx::SqlitePool,
+    user_id: &str,
+    _now_unix: i64,
+) -> sqlx::Result<()> {
+    let month = current_month_utc();
+    sqlx::query(
+        "INSERT INTO monthly_usage (user_id, month, sent_count) VALUES (?, ?, 1) \
+         ON CONFLICT (user_id, month) DO UPDATE SET sent_count = sent_count + 1",
+    )
+    .bind(user_id)
+    .bind(&month)
+    .execute(pool)
+    .await?;
     Ok(())
 }
