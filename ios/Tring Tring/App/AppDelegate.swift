@@ -14,6 +14,10 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
     ) -> Bool {
         UNUserNotificationCenter.current().delegate = self
 
+        Task {
+            await NotificationCategories.registerAll()
+        }
+
         Task { @MainActor in
             await DeviceState.shared.checkAppleCredentialState()
             // If we already have a stored APNs token + Apple session, the system
@@ -50,7 +54,10 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
         willPresent notification: UNNotification,
         withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
     ) {
-        completionHandler([.banner, .sound, .badge, .list])
+        Task { @MainActor in
+            let options = await PushActionRouter.shared.handleForegroundPresentation(notification: notification)
+            completionHandler(options)
+        }
     }
 
     func userNotificationCenter(
@@ -58,12 +65,9 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
         didReceive response: UNNotificationResponse,
         withCompletionHandler completionHandler: @escaping () -> Void
     ) {
-        let userInfo = response.notification.request.content.userInfo
-        if let urlString = userInfo["url"] as? String, let url = URL(string: urlString) {
-            Task { @MainActor in
-                UIApplication.shared.open(url)
-            }
+        Task { @MainActor in
+            await PushActionRouter.shared.handle(response: response, deviceState: DeviceState.shared)
+            completionHandler()
         }
-        completionHandler()
     }
 }
