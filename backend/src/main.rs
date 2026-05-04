@@ -80,6 +80,10 @@ async fn main() -> anyhow::Result<()> {
         .route("/healthz", get(routes::health::healthz))
         .route("/v1/devices", post(routes::devices::register_device))
         .route("/v1/devices/:secret", get(routes::devices::get_device_by_secret))
+        .route(
+            "/:secret/notifications/:name",
+            post(routes::notify::notify_post).get(routes::notify::notify_get),
+        )
         .layer(TraceLayer::new_for_http())
         .with_state(state);
 
