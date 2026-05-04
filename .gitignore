@@ -1,0 +1,36 @@
+# Rust
+backend/target/
+backend/Cargo.lock.local
+
+# Environment / secrets
+.env
+.env.local
+*.p8
+*.p12
+
+# SQLite databases (data, never code)
+*.sqlite
+*.sqlite-journal
+*.sqlite-wal
+*.sqlite-shm
+backend/db.sqlite*
+
+# iOS / Xcode
+ios/**/build/
+ios/**/DerivedData/
+ios/**/*.xcuserdata*/
+ios/**/xcuserdata/
+ios/**/*.xcworkspace/xcuserdata/
+ios/**/.swiftpm/
+
+# macOS
+.DS_Store
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
