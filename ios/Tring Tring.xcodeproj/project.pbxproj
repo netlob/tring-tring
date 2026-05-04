@@ -12,7 +12,32 @@
 		D1A2D91E2FA939460031226B /* DeviceState.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A2D9192FA939460031226B /* DeviceState.swift */; };
 		D1A2D9232FA94B980031226B /* Icon.icon in Resources */ = {isa = PBXBuildFile; fileRef = D1A2D9222FA94B980031226B /* Icon.icon */; };
 		D1A2D9252FA94C000031226B /* SiwaSignInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A2D9242FA94C000031226B /* SiwaSignInView.swift */; };
+		D1A2D94B2FA95DFD0031226B /* NotificationServiceExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D1A2D9442FA95DFD0031226B /* NotificationServiceExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		D1A2D9492FA95DFD0031226B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D166812A2FA9322E00171E27 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D1A2D9432FA95DFD0031226B;
+			remoteInfo = NotificationServiceExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		D1A2D94C2FA95DFD0031226B /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				D1A2D94B2FA95DFD0031226B /* NotificationServiceExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		D16681322FA9322E00171E27 /* Tring Tring.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Tring Tring.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -21,7 +46,18 @@
 		D1A2D9192FA939460031226B /* DeviceState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceState.swift; sourceTree = "<group>"; };
 		D1A2D9222FA94B980031226B /* Icon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = Icon.icon; sourceTree = "<group>"; };
 		D1A2D9242FA94C000031226B /* SiwaSignInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SiwaSignInView.swift; sourceTree = "<group>"; };
+		D1A2D9442FA95DFD0031226B /* NotificationServiceExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = NotificationServiceExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		D1A2D94F2FA95DFD0031226B /* Exceptions for "NotificationServiceExtension" folder in "NotificationServiceExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = D1A2D9432FA95DFD0031226B /* NotificationServiceExtension */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		D16681342FA9322E00171E27 /* Tring Tring */ = {
@@ -29,10 +65,25 @@
 			path = "Tring Tring";
 			sourceTree = "<group>";
 		};
+		D1A2D9452FA95DFD0031226B /* NotificationServiceExtension */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				D1A2D94F2FA95DFD0031226B /* Exceptions for "NotificationServiceExtension" folder in "NotificationServiceExtension" target */,
+			);
+			path = NotificationServiceExtension;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		D166812F2FA9322E00171E27 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D1A2D9412FA95DFD0031226B /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -46,6 +97,7 @@
 			isa = PBXGroup;
 			children = (
 				D16681342FA9322E00171E27 /* Tring Tring */,
+				D1A2D9452FA95DFD0031226B /* NotificationServiceExtension */,
 				D16681332FA9322E00171E27 /* Products */,
 				D1A2D9152FA939460031226B /* AppDelegate.swift */,
 				D1A2D9172FA939460031226B /* BackendClient.swift */,
@@ -59,6 +111,7 @@
 			isa = PBXGroup;
 			children = (
 				D16681322FA9322E00171E27 /* Tring Tring.app */,
+				D1A2D9442FA95DFD0031226B /* NotificationServiceExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -73,10 +126,12 @@
 				D166812E2FA9322E00171E27 /* Sources */,
 				D166812F2FA9322E00171E27 /* Frameworks */,
 				D16681302FA9322E00171E27 /* Resources */,
+				D1A2D94C2FA95DFD0031226B /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				D1A2D94A2FA95DFD0031226B /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				D16681342FA9322E00171E27 /* Tring Tring */,
@@ -87,6 +142,28 @@
 			productName = "Tring Tring";
 			productReference = D16681322FA9322E00171E27 /* Tring Tring.app */;
 			productType = "com.apple.product-type.application";
+		};
+		D1A2D9432FA95DFD0031226B /* NotificationServiceExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D1A2D9502FA95DFD0031226B /* Build configuration list for PBXNativeTarget "NotificationServiceExtension" */;
+			buildPhases = (
+				D1A2D9402FA95DFD0031226B /* Sources */,
+				D1A2D9412FA95DFD0031226B /* Frameworks */,
+				D1A2D9422FA95DFD0031226B /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				D1A2D9452FA95DFD0031226B /* NotificationServiceExtension */,
+			);
+			name = NotificationServiceExtension;
+			packageProductDependencies = (
+			);
+			productName = NotificationServiceExtension;
+			productReference = D1A2D9442FA95DFD0031226B /* NotificationServiceExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -99,6 +176,9 @@
 				LastUpgradeCheck = 2600;
 				TargetAttributes = {
 					D16681312FA9322E00171E27 = {
+						CreatedOnToolsVersion = 26.0.1;
+					};
+					D1A2D9432FA95DFD0031226B = {
 						CreatedOnToolsVersion = 26.0.1;
 					};
 				};
@@ -118,6 +198,7 @@
 			projectRoot = "";
 			targets = (
 				D16681312FA9322E00171E27 /* Tring Tring */,
+				D1A2D9432FA95DFD0031226B /* NotificationServiceExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -128,6 +209,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				D1A2D9232FA94B980031226B /* Icon.icon in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D1A2D9422FA95DFD0031226B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -145,7 +233,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		D1A2D9402FA95DFD0031226B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		D1A2D94A2FA95DFD0031226B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D1A2D9432FA95DFD0031226B /* NotificationServiceExtension */;
+			targetProxy = D1A2D9492FA95DFD0031226B /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		D166813B2FA9323000171E27 /* Debug */ = {
@@ -337,6 +440,62 @@
 			};
 			name = Release;
 		};
+		D1A2D94D2FA95DFD0031226B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = FCB4S3W235;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = NotificationServiceExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = NotificationServiceExtension;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = dev.sjoerd.tringtring.NotificationServiceExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		D1A2D94E2FA95DFD0031226B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = FCB4S3W235;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = NotificationServiceExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = NotificationServiceExtension;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = dev.sjoerd.tringtring.NotificationServiceExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -354,6 +513,15 @@
 			buildConfigurations = (
 				D166813E2FA9323000171E27 /* Debug */,
 				D166813F2FA9323000171E27 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		D1A2D9502FA95DFD0031226B /* Build configuration list for PBXNativeTarget "NotificationServiceExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D1A2D94D2FA95DFD0031226B /* Debug */,
+				D1A2D94E2FA95DFD0031226B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
