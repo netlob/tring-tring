@@ -46,7 +46,11 @@ final class BackendClient {
 
     func register(apnsToken: String, apnsEnv: String, deviceName: String?) async throws -> RegisterResponse {
         let base = APIConfig.currentBaseURL
-        guard let url = URL(string: base)?.appendingPathComponent("v1/devices") else {
+        // `appendingPathComponent("v1/devices")` percent-encodes the slash to
+        // %2F (it treats the whole string as one component), which the server
+        // sees as `/v1%2Fdevices` and returns 404. `appending(path:)` (iOS 16+)
+        // is the modern API that handles embedded separators correctly.
+        guard let url = URL(string: base)?.appending(path: "v1/devices") else {
             throw BackendError.invalidResponse
         }
 
