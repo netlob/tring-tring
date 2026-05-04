@@ -9,9 +9,13 @@ import SwiftUI
 
 @main
 struct Tring_TringApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
+    @State private var deviceState = DeviceState.shared
+
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environment(deviceState)
         }
     }
 }
