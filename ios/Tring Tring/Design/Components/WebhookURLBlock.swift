@@ -37,22 +37,26 @@ struct WebhookURLBlock: View {
                     Button {
                         copy()
                     } label: {
-                        Label(didCopy ? "Copied" : "Copy", systemImage: didCopy ? "checkmark" : "doc.on.doc")
+                        Image(systemName: didCopy ? "checkmark" : "doc.on.doc")
                             .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.glassProminent)
                     .tint(.brass)
+                    .accessibilityLabel(didCopy ? "Copied" : "Copy URL")
 
                     ShareLink(item: url) {
-                        Label("Share", systemImage: "square.and.arrow.up")
+                        Image(systemName: "square.and.arrow.up")
+                            .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.glass)
+                    .accessibilityLabel("Share URL")
 
                     Button {
                         HapticFeedback.light.fire()
                         showQRSheet = true
                     } label: {
                         Image(systemName: "qrcode")
+                            .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.glass)
                     .accessibilityLabel("Show QR code")
@@ -62,6 +66,7 @@ struct WebhookURLBlock: View {
                         showCurlSheet = true
                     } label: {
                         Image(systemName: "terminal")
+                            .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.glass)
                     .accessibilityLabel("View as cURL")

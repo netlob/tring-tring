@@ -17,7 +17,7 @@ struct ActivityView: View {
         NavigationStack {
             content
                 .navigationTitle("Activity")
-                .navigationBarTitleDisplayMode(.large)
+                .toolbarTitleDisplayMode(.inline)
         }
         .task {
             guard !didInitialLoad, let bearer = deviceState.bearerToken else { return }

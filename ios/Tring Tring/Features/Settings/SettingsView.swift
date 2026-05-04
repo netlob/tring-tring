@@ -62,7 +62,7 @@ struct SettingsView: View {
                 aboutSection
             }
             .navigationTitle("Settings")
-            .navigationBarTitleDisplayMode(.large)
+            .toolbarTitleDisplayMode(.inline)
             .task { await loadDevices() }
             .onAppear {
                 apiBaseURLDraft = APIBaseURL.currentBaseURL

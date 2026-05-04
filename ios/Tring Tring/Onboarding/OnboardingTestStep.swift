@@ -63,31 +63,55 @@ struct OnboardingTestStep: View {
                 }
 
                 VStack(spacing: Theme.spacing.md) {
-                    Button {
-                        sendTest()
-                    } label: {
-                        HStack {
-                            if sending {
-                                ProgressView().controlSize(.small).tint(.white)
-                            }
-                            Text(testButtonLabel)
+                    if sentSuccess {
+                        Button {
+                            HapticFeedback.success.fire()
+                            onContinue()
+                        } label: {
+                            Text("Get started")
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, Theme.spacing.xs)
                         }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, Theme.spacing.xs)
-                    }
-                    .buttonStyle(.glassProminent)
-                    .tint(.brass)
-                    .disabled(sending || registered == nil)
+                        .buttonStyle(.glassProminent)
+                        .tint(.brass)
 
-                    Button {
-                        onContinue()
-                    } label: {
-                        Text("Get started")
+                        Button {
+                            sendTest()
+                        } label: {
+                            Text(sending ? "Sending…" : "Send another")
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, Theme.spacing.xs)
+                        }
+                        .buttonStyle(.glass)
+                        .disabled(sending)
+                    } else {
+                        Button {
+                            sendTest()
+                        } label: {
+                            HStack {
+                                if sending {
+                                    ProgressView().controlSize(.small).tint(.white)
+                                }
+                                Text(testButtonLabel)
+                            }
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, Theme.spacing.xs)
+                        }
+                        .buttonStyle(.glassProminent)
+                        .tint(.brass)
+                        .disabled(sending || registered == nil)
+
+                        Button {
+                            onContinue()
+                        } label: {
+                            Text("Skip")
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, Theme.spacing.xs)
+                        }
+                        .buttonStyle(.glass)
                     }
-                    .buttonStyle(.glass)
                 }
+                .animation(.smooth(duration: 0.3), value: sentSuccess)
                 .padding(.horizontal, Theme.spacing.xl)
                 .padding(.bottom, Theme.spacing.xxl + Theme.spacing.lg)
             }
