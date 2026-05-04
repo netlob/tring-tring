@@ -1,17 +1,25 @@
 mod apns;
 mod config;
 mod db;
+mod delay;
+mod dispatch;
 mod error;
+mod middleware;
 mod models;
 mod rate_limit;
 mod retention;
 mod routes;
+mod runner;
+mod scheduler;
 mod siwa;
+mod templates;
 
 use std::env;
 use std::sync::Arc;
+use std::time::Duration;
 
-use axum::routing::{get, post};
+use axum::middleware::from_fn_with_state;
+use axum::routing::{delete, get, post};
 use axum::Router;
 use sqlx::SqlitePool;
 use tokio::net::TcpListener;
@@ -20,6 +28,7 @@ use tower_http::trace::TraceLayer;
 
 use crate::apns::ApnsClient;
 use crate::config::Config;
+use crate::middleware::require_bearer;
 use crate::rate_limit::RateLimiter;
 use crate::siwa::AppleVerifier;
 
@@ -85,14 +94,47 @@ async fn main() -> anyhow::Result<()> {
         litestream_enabled,
     };
 
+    let _scheduler_handle = scheduler::spawn(state.clone(), Duration::from_secs(1));
+    tracing::info!("scheduler task spawned");
+
+    // Bearer-auth-protected /v1/* routes (ADR-0019). The webhook endpoint and
+    // POST /v1/devices stay outside this subrouter — the webhook authenticates
+    // via the userId-as-path-secret model and /v1/devices uses SIWA.
+    let bearer_routes = Router::new()
+        .route("/v1/users/:user_id", get(routes::devices::get_user_by_id))
+        .route(
+            "/v1/users/:user_id/notifications",
+            get(routes::listing::list_notifications),
+        )
+        .route(
+            "/v1/users/:user_id/submittedNotifications/:external_id",
+            delete(routes::scheduled::cancel_submitted),
+        )
+        .route(
+            "/v1/users/:user_id/actions/run",
+            post(routes::actions::run_pending_action),
+        )
+        .route(
+            "/v1/users/:user_id/templates",
+            get(routes::templates::list_templates),
+        )
+        .route(
+            "/v1/users/:user_id/templates/:name",
+            get(routes::templates::get_template)
+                .put(routes::templates::put_template)
+                .delete(routes::templates::delete_template),
+        )
+        .route("/v1/execute", post(routes::execute::execute))
+        .route_layer(from_fn_with_state(state.clone(), require_bearer));
+
     let app = Router::new()
         .route("/healthz", get(routes::health::healthz))
         .route("/v1/devices", post(routes::devices::register_device))
-        .route("/v1/users/:user_id", get(routes::devices::get_user_by_id))
         .route(
             "/:user_id/notifications/:name",
             post(routes::notify::notify_post).get(routes::notify::notify_get),
         )
+        .merge(bearer_routes)
         .layer(TraceLayer::new_for_http())
         .with_state(state);
 
