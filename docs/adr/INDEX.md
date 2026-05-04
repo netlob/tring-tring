@@ -22,6 +22,13 @@ Read before proposing architectural changes. ADRs are immutable once accepted â€
 | [0010](0010-litestream-optional.md) | Litestream replication is optional, controlled by env | Accepted |
 | [0011](0011-notification-name-validation.md) | Notification name in URL: free-form label, regex `[A-Za-z0-9._-]{1,64}` | Accepted |
 | [0012](0012-sign-in-with-apple.md) | Sign in with Apple as the identity layer; per-user webhook URLs | Accepted (supersedes 0005, amends 0008) |
+| [0013](0013-rich-content-payloads.md) | Rich content payloads (images, sounds, devices filter, defaultAction) | Accepted (extends 0004) |
+| [0014](0014-notification-identifiers-and-cancel.md) | Notification identifiers and cancel API | Accepted (extends 0004) |
+| [0015](0015-scheduled-and-delayed-notifications.md) | Scheduled and delayed notifications | Accepted (extends 0004) |
+| [0016](0016-interactive-actions.md) | Interactive notification actions | Accepted (extends 0004) |
+| [0017](0017-run-on-server-actions.md) | Run-on-server action execution | Accepted (extends 0004) |
+| [0018](0018-saved-notification-templates.md) | Saved notification templates | Accepted (extends 0004) |
+| [0019](0019-rest-auth-and-listing.md) | REST auth, listing, and execute endpoint | Accepted (extends 0004) |
 
 ## When to write a new ADR
 
