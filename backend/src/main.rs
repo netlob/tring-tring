@@ -1,23 +1,32 @@
+mod apns;
 mod config;
 mod db;
 mod error;
+mod models;
+mod rate_limit;
+mod retention;
 mod routes;
 
 use std::env;
+use std::sync::Arc;
 
-use axum::routing::get;
+use axum::routing::{get, post};
 use axum::Router;
 use sqlx::SqlitePool;
 use tokio::net::TcpListener;
 use tokio::signal;
 use tower_http::trace::TraceLayer;
 
+use crate::apns::ApnsClient;
 use crate::config::Config;
+use crate::rate_limit::RateLimiter;
 
 #[derive(Clone)]
 pub struct AppState {
     pub db: SqlitePool,
-    pub config: std::sync::Arc<Config>,
+    pub config: Arc<Config>,
+    pub apns: ApnsClient,
+    pub rate_limiter: Arc<RateLimiter>,
     pub litestream_enabled: bool,
 }
 
@@ -33,11 +42,19 @@ async fn main() -> anyhow::Result<()> {
     tracing::info!(
         bundle = %cfg.apns.bundle_id,
         env = ?cfg.apns.env,
+        rate_limit_per_minute = cfg.rate_limit_per_minute,
+        monthly_quota = cfg.monthly_quota,
         "starting tring-tring"
     );
 
     let db = db::connect(&db_url).await?;
     tracing::info!("database ready (WAL mode, migrations applied)");
+
+    let apns = ApnsClient::new(&cfg.apns)
+        .map_err(|e| anyhow::anyhow!("apns client init failed: {e}"))?;
+    tracing::info!("apns client initialized");
+
+    let rate_limiter = Arc::new(RateLimiter::new(cfg.rate_limit_per_minute));
 
     let litestream_enabled = env::var("LITESTREAM_REPLICA_URL")
         .map(|v| !v.is_empty())
@@ -48,14 +65,21 @@ async fn main() -> anyhow::Result<()> {
         tracing::warn!("litestream: disabled — set LITESTREAM_REPLICA_URL to enable off-host backups");
     }
 
+    let _retention_handle = retention::spawn(db.clone());
+    tracing::info!("retention task spawned");
+
     let state = AppState {
         db,
-        config: std::sync::Arc::new(cfg),
+        config: Arc::new(cfg),
+        apns,
+        rate_limiter,
         litestream_enabled,
     };
 
     let app = Router::new()
         .route("/healthz", get(routes::health::healthz))
+        .route("/v1/devices", post(routes::devices::register_device))
+        .route("/v1/devices/:secret", get(routes::devices::get_device_by_secret))
         .layer(TraceLayer::new_for_http())
         .with_state(state);
 

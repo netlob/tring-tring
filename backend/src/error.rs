@@ -17,6 +17,15 @@ pub enum AppError {
     #[error("monthly quota exceeded")]
     QuotaExceeded,
 
+    #[error("device unregistered with apns")]
+    DeviceGone,
+
+    #[error("apns rejected request: {reason} ({status})")]
+    ApnsRejected { status: u16, reason: String },
+
+    #[error("apns transport error: {0}")]
+    ApnsTransport(String),
+
     #[error(transparent)]
     Sqlx(#[from] sqlx::Error),
 
@@ -37,6 +46,15 @@ impl IntoResponse for AppError {
                 StatusCode::TOO_MANY_REQUESTS,
                 json!({"error": "monthly quota exceeded"}),
             ),
+            AppError::DeviceGone => (StatusCode::GONE, json!({"error": "device unregistered"})),
+            AppError::ApnsRejected { status, reason } => {
+                tracing::warn!(apns_status = status, apns_reason = %reason, "apns rejected push");
+                (StatusCode::BAD_GATEWAY, json!({"error": "apns rejected", "apnsReason": reason}))
+            }
+            AppError::ApnsTransport(msg) => {
+                tracing::error!(error = %msg, "apns transport error");
+                (StatusCode::BAD_GATEWAY, json!({"error": "apns transport error"}))
+            }
             AppError::Sqlx(e) => {
                 tracing::error!(error = %e, "database error");
                 (
