@@ -29,6 +29,18 @@ pub enum AppError {
     #[error("apns transport error: {0}")]
     ApnsTransport(String),
 
+    #[error("payload too large")]
+    PayloadTooLarge,
+
+    #[error("conflict: {0}")]
+    Conflict(String),
+
+    #[error("forbidden: {0}")]
+    Forbidden(String),
+
+    #[error("upstream error: {0}")]
+    Upstream(String),
+
     #[error(transparent)]
     Sqlx(#[from] sqlx::Error),
 
@@ -63,6 +75,19 @@ impl IntoResponse for AppError {
                 (
                     StatusCode::BAD_GATEWAY,
                     json!({"error": "apns transport error"}),
+                )
+            }
+            AppError::PayloadTooLarge => (
+                StatusCode::PAYLOAD_TOO_LARGE,
+                json!({"error": "payload too large"}),
+            ),
+            AppError::Conflict(msg) => (StatusCode::CONFLICT, json!({"error": msg})),
+            AppError::Forbidden(msg) => (StatusCode::FORBIDDEN, json!({"error": msg})),
+            AppError::Upstream(msg) => {
+                tracing::warn!(error = %msg, "upstream error");
+                (
+                    StatusCode::BAD_GATEWAY,
+                    json!({"error": "upstream error", "message": msg}),
                 )
             }
             AppError::Sqlx(e) => {
