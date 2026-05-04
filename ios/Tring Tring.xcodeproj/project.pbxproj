@@ -7,12 +7,11 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		D164B6552FA9306800B01EF8 /* Tring Tring.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = "Tring Tring.xcodeproj"; sourceTree = "<group>"; };
-		D1F737812FA9302600B10A61 /* Tring Tring.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Tring Tring.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		D16681322FA9322E00171E27 /* Tring Tring.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Tring Tring.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		D1F737832FA9302600B10A61 /* Tring Tring */ = {
+		D16681342FA9322E00171E27 /* Tring Tring */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = "Tring Tring";
 			sourceTree = "<group>";
@@ -20,7 +19,7 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		D1F7377E2FA9302600B10A61 /* Frameworks */ = {
+		D166812F2FA9322E00171E27 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -30,25 +29,18 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		D164B6572FA9306800B01EF8 /* Products */ = {
+		D16681292FA9322E00171E27 = {
 			isa = PBXGroup;
 			children = (
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
-		D1F737782FA9302600B10A61 = {
-			isa = PBXGroup;
-			children = (
-				D1F737832FA9302600B10A61 /* Tring Tring */,
-				D1F737822FA9302600B10A61 /* Products */,
+				D16681342FA9322E00171E27 /* Tring Tring */,
+				D16681332FA9322E00171E27 /* Products */,
 			);
 			sourceTree = "<group>";
 		};
-		D1F737822FA9302600B10A61 /* Products */ = {
+		D16681332FA9322E00171E27 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				D1F737812FA9302600B10A61 /* Tring Tring.app */,
+				D16681322FA9322E00171E27 /* Tring Tring.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -56,70 +48,64 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		D1F737802FA9302600B10A61 /* Tring Tring */ = {
+		D16681312FA9322E00171E27 /* Tring Tring */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = D1F7378C2FA9302800B10A61 /* Build configuration list for PBXNativeTarget "Tring Tring" */;
+			buildConfigurationList = D166813D2FA9323000171E27 /* Build configuration list for PBXNativeTarget "Tring Tring" */;
 			buildPhases = (
-				D1F7377D2FA9302600B10A61 /* Sources */,
-				D1F7377E2FA9302600B10A61 /* Frameworks */,
-				D1F7377F2FA9302600B10A61 /* Resources */,
+				D166812E2FA9322E00171E27 /* Sources */,
+				D166812F2FA9322E00171E27 /* Frameworks */,
+				D16681302FA9322E00171E27 /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				D1F737832FA9302600B10A61 /* Tring Tring */,
+				D16681342FA9322E00171E27 /* Tring Tring */,
 			);
 			name = "Tring Tring";
 			packageProductDependencies = (
 			);
 			productName = "Tring Tring";
-			productReference = D1F737812FA9302600B10A61 /* Tring Tring.app */;
+			productReference = D16681322FA9322E00171E27 /* Tring Tring.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		D1F737792FA9302600B10A61 /* Project object */ = {
+		D166812A2FA9322E00171E27 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 2600;
 				LastUpgradeCheck = 2600;
 				TargetAttributes = {
-					D1F737802FA9302600B10A61 = {
+					D16681312FA9322E00171E27 = {
 						CreatedOnToolsVersion = 26.0.1;
 					};
 				};
 			};
-			buildConfigurationList = D1F7377C2FA9302600B10A61 /* Build configuration list for PBXProject "Tring Tring" */;
+			buildConfigurationList = D166812D2FA9322E00171E27 /* Build configuration list for PBXProject "Tring Tring" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
 				Base,
 			);
-			mainGroup = D1F737782FA9302600B10A61;
+			mainGroup = D16681292FA9322E00171E27;
 			minimizedProjectReferenceProxies = 1;
 			preferredProjectObjectVersion = 77;
-			productRefGroup = D1F737822FA9302600B10A61 /* Products */;
+			productRefGroup = D16681332FA9322E00171E27 /* Products */;
 			projectDirPath = "";
-			projectReferences = (
-				{
-					ProductGroup = D164B6572FA9306800B01EF8 /* Products */;
-					ProjectRef = D164B6552FA9306800B01EF8 /* Tring Tring.xcodeproj */;
-				},
-			);
 			projectRoot = "";
 			targets = (
-				D1F737802FA9302600B10A61 /* Tring Tring */,
+				D16681312FA9322E00171E27 /* Tring Tring */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		D1F7377F2FA9302600B10A61 /* Resources */ = {
+		D16681302FA9322E00171E27 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -129,7 +115,7 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		D1F7377D2FA9302600B10A61 /* Sources */ = {
+		D166812E2FA9322E00171E27 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -139,7 +125,7 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
-		D1F7378A2FA9302800B10A61 /* Debug */ = {
+		D166813B2FA9323000171E27 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -203,7 +189,7 @@
 			};
 			name = Debug;
 		};
-		D1F7378B2FA9302800B10A61 /* Release */ = {
+		D166813C2FA9323000171E27 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -260,7 +246,7 @@
 			};
 			name = Release;
 		};
-		D1F7378D2FA9302800B10A61 /* Debug */ = {
+		D166813E2FA9323000171E27 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -292,7 +278,7 @@
 			};
 			name = Debug;
 		};
-		D1F7378E2FA9302800B10A61 /* Release */ = {
+		D166813F2FA9323000171E27 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -327,25 +313,25 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		D1F7377C2FA9302600B10A61 /* Build configuration list for PBXProject "Tring Tring" */ = {
+		D166812D2FA9322E00171E27 /* Build configuration list for PBXProject "Tring Tring" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				D1F7378A2FA9302800B10A61 /* Debug */,
-				D1F7378B2FA9302800B10A61 /* Release */,
+				D166813B2FA9323000171E27 /* Debug */,
+				D166813C2FA9323000171E27 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		D1F7378C2FA9302800B10A61 /* Build configuration list for PBXNativeTarget "Tring Tring" */ = {
+		D166813D2FA9323000171E27 /* Build configuration list for PBXNativeTarget "Tring Tring" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				D1F7378D2FA9302800B10A61 /* Debug */,
-				D1F7378E2FA9302800B10A61 /* Release */,
+				D166813E2FA9323000171E27 /* Debug */,
+				D166813F2FA9323000171E27 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
-	rootObject = D1F737792FA9302600B10A61 /* Project object */;
+	rootObject = D166812A2FA9322E00171E27 /* Project object */;
 }
