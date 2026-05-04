@@ -49,6 +49,10 @@ sha2 = "0.10"
 hex = "0.4"
 futures = "0.3"
 
+# Full Pushcut spec (ADR-0013 .. 0019)
+humantime = "2"           # "1h 5m" delay string parser (ADR-0015)
+url = "2"                 # URL parsing for SSRF guard (ADR-0017)
+
 [profile.release]
 strip = true
 lto = "thin"
