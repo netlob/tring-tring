@@ -17,7 +17,7 @@ services:
     image: tring-tring:dev
     restart: unless-stopped
     ports:
-      - "127.0.0.1:8080:8080"
+      - "8080:8080"
     volumes:
       - tring-data:/data
       - ./backend/apns.p8:/run/secrets/apns.p8:ro
