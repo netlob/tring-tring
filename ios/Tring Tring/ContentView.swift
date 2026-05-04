@@ -8,6 +8,70 @@ import SwiftUI
 struct ContentView: View {
     @Environment(DeviceState.self) private var deviceState
     @Environment(\.scenePhase) private var scenePhase
+
+    var body: some View {
+        Group {
+            switch deviceState.status {
+            case .signedOut:
+                SiwaSignInView()
+            case .appleRevoked:
+                SiwaSignInView(showsRevokedNotice: true)
+            case .signedInPendingDevice:
+                PendingDeviceView()
+            case .registered(let userId, let webhookUrl):
+                RegisteredView(userId: userId, webhookUrl: webhookUrl)
+            }
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            if newPhase == .active {
+                Task {
+                    await deviceState.checkAppleCredentialState()
+                    await deviceState.reRegisterIfAPIChanged()
+                }
+            }
+        }
+    }
+}
+
+private struct PendingDeviceView: View {
+    @Environment(DeviceState.self) private var deviceState
+
+    var body: some View {
+        VStack(spacing: 24) {
+            Spacer()
+            ProgressView()
+                .controlSize(.large)
+            Text("Registering this device…")
+                .font(.headline)
+                .foregroundStyle(.secondary)
+            if let error = deviceState.lastError {
+                Text(error)
+                    .font(.footnote)
+                    .foregroundStyle(.red)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 24)
+            }
+            Spacer()
+            Button("Retry") {
+                Task { await deviceState.retryRegistration() }
+            }
+            .buttonStyle(.bordered)
+            Button("Sign out") {
+                deviceState.signOutLocally()
+            }
+            .buttonStyle(.borderless)
+            .font(.footnote)
+            .foregroundStyle(.secondary)
+            Spacer().frame(height: 24)
+        }
+    }
+}
+
+private struct RegisteredView: View {
+    @Environment(DeviceState.self) private var deviceState
+    let userId: String
+    let webhookUrl: String
+
     @State private var showSettings = false
     @State private var copied = false
 
@@ -36,37 +100,16 @@ struct ContentView: View {
                 SettingsView()
             }
         }
-        .onChange(of: scenePhase) { _, newPhase in
-            if newPhase == .active {
-                Task { await deviceState.reRegisterIfAPIChanged() }
-            }
-        }
     }
 
     @ViewBuilder
     private var statusSection: some View {
-        switch deviceState.status {
-        case .idle, .requestingPermission, .awaitingToken:
-            Label("Waiting for push registration…", systemImage: "antenna.radiowaves.left.and.right")
-                .foregroundStyle(.secondary)
-        case .registering:
-            Label("Registering with backend…", systemImage: "arrow.triangle.2.circlepath")
-                .foregroundStyle(.secondary)
-        case .registered:
-            Label("Registered", systemImage: "checkmark.seal.fill")
-                .foregroundStyle(.green)
-        case .failed(let message):
-            VStack(alignment: .leading, spacing: 8) {
-                Label("Registration failed", systemImage: "exclamationmark.triangle.fill")
-                    .foregroundStyle(.red)
-                Text(message)
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-                Button("Retry") {
-                    Task { await deviceState.registerIfNeeded(force: true) }
-                }
-                .buttonStyle(.bordered)
-            }
+        Label("Registered", systemImage: "checkmark.seal.fill")
+            .foregroundStyle(.green)
+        if let error = deviceState.lastError {
+            Text(error)
+                .font(.footnote)
+                .foregroundStyle(.red)
         }
     }
 
@@ -75,34 +118,29 @@ struct ContentView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Your webhook URL")
                 .font(.headline)
-            if let url = deviceState.webhookUrl {
-                Text(url)
-                    .font(.system(.callout, design: .monospaced))
-                    .textSelection(.enabled)
-                    .padding()
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 12))
-                HStack {
-                    Button {
-                        UIPasteboard.general.string = url
-                        copied = true
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                            copied = false
-                        }
-                    } label: {
-                        Label(copied ? "Copied" : "Copy", systemImage: copied ? "checkmark" : "doc.on.doc")
-                            .frame(maxWidth: .infinity)
+            Text(webhookUrl)
+                .font(.system(.callout, design: .monospaced))
+                .textSelection(.enabled)
+                .padding()
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 12))
+            HStack {
+                Button {
+                    UIPasteboard.general.string = webhookUrl
+                    copied = true
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                        copied = false
                     }
-                    .buttonStyle(.borderedProminent)
+                } label: {
+                    Label(copied ? "Copied" : "Copy", systemImage: copied ? "checkmark" : "doc.on.doc")
+                        .frame(maxWidth: .infinity)
                 }
-            } else {
-                Text("Your URL will appear here once your device is registered.")
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
-                    .padding()
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 12))
+                .buttonStyle(.borderedProminent)
             }
+            Text("User ID: \(userId)")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .textSelection(.enabled)
         }
     }
 
@@ -111,7 +149,7 @@ struct ContentView: View {
         VStack(alignment: .leading, spacing: 6) {
             Text("How it works")
                 .font(.headline)
-            Text("POST a JSON body to your webhook URL to receive a push notification on this device. Include a `url` field to make tapping the notification open a link.")
+            Text("POST a JSON body to your webhook URL to receive a push notification on every device you've signed in on. Include a `url` field to make tapping the notification open a link.")
                 .font(.footnote)
                 .foregroundStyle(.secondary)
         }
@@ -140,6 +178,13 @@ private struct SettingsView: View {
                 Section {
                     Button("Reset to default") {
                         apiBaseURL = APIConfig.defaultBaseURL
+                    }
+                }
+
+                Section {
+                    Button("Sign out", role: .destructive) {
+                        deviceState.signOutLocally()
+                        dismiss()
                     }
                 }
             }

@@ -11,15 +11,17 @@ enum BackendError: Error {
     case transport(Error)
 }
 
-struct RegisterResponse: Decodable {
-    let webhookSecret: String
-    let webhookUrl: String
-}
-
 struct RegisterRequest: Encodable {
+    let appleIdentityToken: String
+    let rawNonce: String
     let apnsToken: String
     let apnsEnv: String
     let deviceName: String?
+}
+
+struct RegisterResponse: Decodable {
+    let userId: String
+    let webhookUrl: String
 }
 
 enum APIConfig {
@@ -44,7 +46,13 @@ final class BackendClient {
         self.session = session
     }
 
-    func register(apnsToken: String, apnsEnv: String, deviceName: String?) async throws -> RegisterResponse {
+    func register(
+        appleIdentityToken: String,
+        rawNonce: String,
+        apnsToken: String,
+        apnsEnv: String,
+        deviceName: String?
+    ) async throws -> RegisterResponse {
         let base = APIConfig.currentBaseURL
         // `appendingPathComponent("v1/devices")` percent-encodes the slash to
         // %2F (it treats the whole string as one component), which the server
@@ -59,7 +67,13 @@ final class BackendClient {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
 
-        let body = RegisterRequest(apnsToken: apnsToken, apnsEnv: apnsEnv, deviceName: deviceName)
+        let body = RegisterRequest(
+            appleIdentityToken: appleIdentityToken,
+            rawNonce: rawNonce,
+            apnsToken: apnsToken,
+            apnsEnv: apnsEnv,
+            deviceName: deviceName
+        )
         request.httpBody = try JSONEncoder().encode(body)
 
         let data: Data

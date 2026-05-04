@@ -12,17 +12,17 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
     ) -> Bool {
-        let center = UNUserNotificationCenter.current()
-        center.delegate = self
+        UNUserNotificationCenter.current().delegate = self
 
         Task { @MainActor in
-            do {
-                let granted = try await center.requestAuthorization(options: [.alert, .sound, .badge])
-                if granted {
-                    UIApplication.shared.registerForRemoteNotifications()
-                }
-            } catch {
-                print("notification authorization error: \(error)")
+            await DeviceState.shared.checkAppleCredentialState()
+            // If we already have a stored APNs token + Apple session, the system
+            // re-issues the token via didRegisterForRemoteNotifications. Trigger
+            // it explicitly to refresh the token after each cold launch.
+            if case .registered = DeviceState.shared.status {
+                UIApplication.shared.registerForRemoteNotifications()
+            } else if case .signedInPendingDevice = DeviceState.shared.status {
+                UIApplication.shared.registerForRemoteNotifications()
             }
         }
 
@@ -33,9 +33,8 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
         _ application: UIApplication,
         didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
     ) {
-        let token = deviceToken.map { String(format: "%02x", $0) }.joined()
         Task { @MainActor in
-            await DeviceState.shared.handleAPNsToken(token)
+            await DeviceState.shared.handleAPNsToken(deviceToken)
         }
     }
 
@@ -43,7 +42,7 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
         _ application: UIApplication,
         didFailToRegisterForRemoteNotificationsWithError error: Error
     ) {
-        print("APNs registration failed: \(error)")
+        print("APNs registration failed: \(error.localizedDescription)")
     }
 
     func userNotificationCenter(
