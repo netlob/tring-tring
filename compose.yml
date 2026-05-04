@@ -1,6 +1,11 @@
 # Local-dev parity for the production container deployment (see ADR-0009).
 # `docker compose up --build` brings up the app on http://127.0.0.1:8080.
 #
+# Setup:
+#   1. cp backend/.env.example backend/.env  (then fill in the APNS_* vars)
+#   2. Place your .p8 file at backend/apns.p8 (gitignored).
+#   3. docker compose up --build
+#
 # Litestream stays disabled for local dev (no LITESTREAM_REPLICA_URL).
 # To exercise it locally, set the LITESTREAM_* vars in backend/.env.
 
@@ -15,11 +20,8 @@ services:
       - "127.0.0.1:8080:8080"
     volumes:
       - tring-data:/data
+      - ./backend/apns.p8:/run/secrets/apns.p8:ro
     env_file: ./backend/.env
-    # APNs key: bind-mount the local .p8 into the container; .env points at it.
-    # Adjust the source path if your file lives elsewhere.
-    # volumes:
-    #   - ./backend/apns.p8:/run/secrets/apns.p8:ro
 
 volumes:
   tring-data:
