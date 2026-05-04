@@ -20,7 +20,7 @@ Once data persistence is solved by a properly mounted volume, Docker's downsides
 
 ## Decision
 
-- **Distribution unit**: a single Docker image, multi-arch (`linux/amd64` + `linux/arm64`), published from CI to GitHub Container Registry (`ghcr.io/sjoerdbolten/tring-tring`).
+- **Distribution unit**: a single Docker image, multi-arch (`linux/amd64` + `linux/arm64`), published from CI to GitHub Container Registry (`ghcr.io/netlob/tring-tring`).
 - **Image base**: `debian:bookworm-slim` for the runtime stage (small, glibc-based so we don't fight musl quirks with `rustls`/native TLS). Multi-stage build: `rust:1` for compile, `debian:bookworm-slim` for runtime. Includes `ca-certificates` and `litestream`.
 - **Single process per container**: the Rust binary is PID 1 (via `tini` for signal handling). Litestream runs **inside the same image** as a subordinate process supervised by the entrypoint script when configured (see ADR-0010), not as a separate container — this keeps the deployment to "one container with one volume" for any Docker host.
 - **Persistent volume**: mount any persistent volume at `/data`. The SQLite DB lives at `/data/db.sqlite`. The image refuses to start if `/data` is not writable.

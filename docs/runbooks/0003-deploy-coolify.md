@@ -14,7 +14,7 @@ Per [ADR-0009](../adr/0009-containerized-deployment.md), the deployment unit is 
 - A host running Coolify (typical: Hetzner CAX11 with Coolify installed) **or** any Linux host with Docker + Docker Compose v2.
 - A domain (e.g., `tring-tring.sjoerd.dev`) with DNS pointing at the host.
 - The APNs `.p8` key and metadata (Key ID, Team ID, Bundle ID).
-- A multi-arch image published to `ghcr.io/sjoerdbolten/tring-tring:<tag>` (CI does this on every push to `main`).
+- A multi-arch image published to `ghcr.io/netlob/tring-tring:<tag>` (CI does this on every push to `main`).
 - Optional but recommended for production: an S3-compatible object storage bucket and credentials for Litestream (Hetzner Object Storage, Backblaze B2, AWS S3, etc.).
 
 ## Path A: Coolify
@@ -23,7 +23,7 @@ Per [ADR-0009](../adr/0009-containerized-deployment.md), the deployment unit is 
 
 - Coolify → **+ New → Application**.
 - Source: **Public Image**.
-- Image: `ghcr.io/sjoerdbolten/tring-tring:latest` (or pin a tag).
+- Image: `ghcr.io/netlob/tring-tring:latest` (or pin a tag).
 - Network: HTTP, container port `8080`.
 - Domain: `tring-tring.sjoerd.dev` (Coolify will auto-issue Let's Encrypt).
 
@@ -90,7 +90,7 @@ systemctl enable --now docker
 ```yaml
 services:
   app:
-    image: ghcr.io/sjoerdbolten/tring-tring:latest
+    image: ghcr.io/netlob/tring-tring:latest
     restart: unless-stopped
     ports:
       - "127.0.0.1:8080:8080"

@@ -37,7 +37,7 @@ docker run --rm \
   -e LITESTREAM_ACCESS_KEY_ID=<same> \
   -e LITESTREAM_SECRET_ACCESS_KEY=<same> \
   -e LITESTREAM_REPLICA_ENDPOINT=<same> \
-  ghcr.io/sjoerdbolten/tring-tring:latest \
+  ghcr.io/netlob/tring-tring:latest \
   /usr/local/bin/litestream restore \
     -if-replica-exists \
     -o /data/db.sqlite.restored \
@@ -49,7 +49,7 @@ For a point-in-time restore, add `-timestamp 2026-05-04T12:34:56Z` before the UR
 ### 3. Swap the restored file in
 
 ```bash
-docker run --rm -v <volume-name>:/data ghcr.io/sjoerdbolten/tring-tring:latest \
+docker run --rm -v <volume-name>:/data ghcr.io/netlob/tring-tring:latest \
   sh -c '
     test -s /data/db.sqlite.restored || { echo "no restored file"; exit 1; }
     mv /data/db.sqlite /data/db.sqlite.bak.$(date -u +%Y%m%dT%H%M%SZ) 2>/dev/null || true
