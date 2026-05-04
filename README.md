@@ -22,6 +22,20 @@ docs/      Architecture decisions and operational runbooks
 
 Start with [`CLAUDE.md`](CLAUDE.md). It is the canonical entry point and the contract for how this repo evolves.
 
+## Deploy
+
+The backend ships as a multi-arch Docker image (`linux/amd64` + `linux/arm64`) published to GitHub Container Registry on every push to `main` and on every `v*` tag. See [docs/runbooks/0003-deploy-coolify.md](docs/runbooks/0003-deploy-coolify.md) for the full deploy guide (Coolify path + portable `docker compose` fallback) and [ADR-0009](docs/adr/0009-containerized-deployment.md) for the deployment contract.
+
+Quick start (any Docker host with a persistent volume mounted at `/data`):
+
+```bash
+docker run -d --name tring-tring \
+  -p 8080:8080 \
+  -v tring-data:/data \
+  --env-file .env \
+  ghcr.io/netlob/tring-tring:latest
+```
+
 ## License
 
 TBD.
