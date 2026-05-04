@@ -36,8 +36,6 @@ final class DeviceState {
     private(set) var status: AuthStatus = .signedOut
     var lastError: String?
 
-    var pendingRawNonce: String?
-
     private var userId: String?
     private var webhookUrl: String?
     private var appleUserSub: String?
@@ -100,7 +98,6 @@ final class DeviceState {
 
         self.pendingIdentityToken = identityToken
         self.pendingConsumedRawNonce = rawNonce
-        self.pendingRawNonce = nil
         self.status = .signedInPendingDevice
         self.lastError = nil
 
@@ -260,7 +257,6 @@ final class DeviceState {
         self.lastRegisteredApnsEnv = nil
         self.pendingIdentityToken = nil
         self.pendingConsumedRawNonce = nil
-        self.pendingRawNonce = nil
         self.lastError = nil
         self.status = .signedOut
     }

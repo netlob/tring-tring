@@ -15,6 +15,10 @@ struct SiwaSignInView: View {
     let showsRevokedNotice: Bool
 
     @State private var alertMessage: String?
+    // Per-tap nonce. Lives on the view, NOT on DeviceState — writing to a
+    // shared @Observable here causes spurious view rebuilds during the SIWA
+    // sheet and the value can be lost before handleCompletion runs.
+    @State private var pendingRawNonce: String?
 
     init(showsRevokedNotice: Bool = false) {
         self.showsRevokedNotice = showsRevokedNotice
@@ -67,7 +71,7 @@ struct SiwaSignInView: View {
 
     private func configureRequest(_ request: ASAuthorizationAppleIDRequest) {
         let rawNonce = UUID().uuidString
-        deviceState.pendingRawNonce = rawNonce
+        pendingRawNonce = rawNonce
         request.nonce = sha256Hex(rawNonce)
         request.requestedScopes = [.fullName, .email]
     }
@@ -77,16 +81,16 @@ struct SiwaSignInView: View {
         case .success(let authorization):
             guard let credential = authorization.credential as? ASAuthorizationAppleIDCredential else {
                 alertMessage = "Sign in returned an unexpected credential type."
-                deviceState.pendingRawNonce = nil
+                pendingRawNonce = nil
                 return
             }
             guard let tokenData = credential.identityToken,
                   let identityToken = String(data: tokenData, encoding: .utf8) else {
                 alertMessage = "Sign in did not return an identity token."
-                deviceState.pendingRawNonce = nil
+                pendingRawNonce = nil
                 return
             }
-            guard let rawNonce = deviceState.pendingRawNonce else {
+            guard let rawNonce = pendingRawNonce else {
                 alertMessage = "Internal error: missing nonce. Please try again."
                 return
             }
@@ -95,7 +99,7 @@ struct SiwaSignInView: View {
             let email = credential.email
 
             alertMessage = nil
-            deviceState.pendingRawNonce = nil
+            pendingRawNonce = nil
 
             Task { @MainActor in
                 await deviceState.handleAppleSignIn(
@@ -107,7 +111,7 @@ struct SiwaSignInView: View {
             }
 
         case .failure(let error):
-            deviceState.pendingRawNonce = nil
+            pendingRawNonce = nil
             if let asError = error as? ASAuthorizationError, asError.code == .canceled {
                 alertMessage = nil
                 return
