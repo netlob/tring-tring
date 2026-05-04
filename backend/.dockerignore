@@ -1,0 +1,12 @@
+target
+.env
+.env.local
+*.p8
+*.p12
+*.sqlite
+*.sqlite-journal
+*.sqlite-wal
+*.sqlite-shm
+.git
+.DS_Store
+data
