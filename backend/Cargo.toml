@@ -27,6 +27,21 @@ thiserror = "1"
 anyhow = "1"
 dotenvy = "0.15"
 
+# APNs (see ADR-0007)
+a2 = "0.10"
+
+# Rate limiting (see ADR-0008 + Step 6)
+governor = "0.6"
+dashmap = "6"
+
+# Random secret generation
+rand = "0.8"
+base64 = "0.22"
+
+# Notification name validation (ADR-0011)
+regex = "1"
+once_cell = "1"
+
 [profile.release]
 strip = true
 lto = "thin"
