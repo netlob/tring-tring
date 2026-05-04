@@ -6,6 +6,7 @@ mod models;
 mod rate_limit;
 mod retention;
 mod routes;
+mod siwa;
 
 use std::env;
 use std::sync::Arc;
@@ -20,6 +21,7 @@ use tower_http::trace::TraceLayer;
 use crate::apns::ApnsClient;
 use crate::config::Config;
 use crate::rate_limit::RateLimiter;
+use crate::siwa::AppleVerifier;
 
 #[derive(Clone)]
 pub struct AppState {
@@ -27,6 +29,7 @@ pub struct AppState {
     pub config: Arc<Config>,
     pub apns: ApnsClient,
     pub rate_limiter: Arc<RateLimiter>,
+    pub siwa: Arc<AppleVerifier>,
     pub litestream_enabled: bool,
 }
 
@@ -56,6 +59,9 @@ async fn main() -> anyhow::Result<()> {
 
     let rate_limiter = Arc::new(RateLimiter::new(cfg.rate_limit_per_minute));
 
+    let siwa = Arc::new(AppleVerifier::new(cfg.apns.bundle_id.clone()));
+    tracing::info!("apple verifier initialized");
+
     let litestream_enabled = env::var("LITESTREAM_REPLICA_URL")
         .map(|v| !v.is_empty())
         .unwrap_or(false);
@@ -75,18 +81,16 @@ async fn main() -> anyhow::Result<()> {
         config: Arc::new(cfg),
         apns,
         rate_limiter,
+        siwa,
         litestream_enabled,
     };
 
     let app = Router::new()
         .route("/healthz", get(routes::health::healthz))
         .route("/v1/devices", post(routes::devices::register_device))
+        .route("/v1/users/:user_id", get(routes::devices::get_user_by_id))
         .route(
-            "/v1/devices/:secret",
-            get(routes::devices::get_device_by_secret),
-        )
-        .route(
-            "/:secret/notifications/:name",
+            "/:user_id/notifications/:name",
             post(routes::notify::notify_post).get(routes::notify::notify_get),
         )
         .layer(TraceLayer::new_for_http())

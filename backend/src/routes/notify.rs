@@ -1,13 +1,14 @@
 use axum::extract::{Path, Query, State};
 use axum::Json;
+use futures::future::join_all;
 use once_cell::sync::Lazy;
 use regex::Regex;
 use serde::Deserialize;
-use serde_json::Value;
+use serde_json::{json, Value};
 
 use crate::apns::{ApnsError, ApnsPayload};
 use crate::error::{AppError, AppResult};
-use crate::models::{now_unix, Device};
+use crate::models;
 use crate::rate_limit;
 use crate::AppState;
 
@@ -62,6 +63,17 @@ pub struct NotifyQuery {
     input: Option<String>,
 }
 
+#[derive(Debug, Default)]
+struct NotifyInput {
+    title: Option<String>,
+    text: Option<String>,
+    sound: Option<String>,
+    thread_id: Option<String>,
+    is_time_sensitive: bool,
+    default_action_url: Option<String>,
+    input: Option<String>,
+}
+
 impl From<NotifyBody> for NotifyInput {
     fn from(b: NotifyBody) -> Self {
         Self {
@@ -90,47 +102,42 @@ impl From<NotifyQuery> for NotifyInput {
     }
 }
 
-#[derive(Debug, Default)]
-struct NotifyInput {
-    title: Option<String>,
-    text: Option<String>,
-    sound: Option<String>,
-    thread_id: Option<String>,
-    is_time_sensitive: bool,
-    default_action_url: Option<String>,
-    input: Option<String>,
-}
-
 #[tracing::instrument(
     skip(state, payload),
-    fields(secret_prefix = %&secret[..8.min(secret.len())])
+    fields(
+        user_prefix = %&user_id[..8.min(user_id.len())],
+        name = %name
+    )
 )]
 pub async fn notify_post(
     State(state): State<AppState>,
-    Path((secret, name)): Path<(String, String)>,
+    Path((user_id, name)): Path<(String, String)>,
     payload: Option<Json<NotifyBody>>,
 ) -> AppResult<Json<Value>> {
     let input = payload
         .map(|Json(b)| NotifyInput::from(b))
         .unwrap_or_default();
-    process_send(state, secret, name, input).await
+    process_send(state, user_id, name, input).await
 }
 
 #[tracing::instrument(
-    skip(state, payload),
-    fields(secret_prefix = %&secret[..8.min(secret.len())])
+    skip(state, query),
+    fields(
+        user_prefix = %&user_id[..8.min(user_id.len())],
+        name = %name
+    )
 )]
 pub async fn notify_get(
     State(state): State<AppState>,
-    Path((secret, name)): Path<(String, String)>,
-    Query(payload): Query<NotifyQuery>,
+    Path((user_id, name)): Path<(String, String)>,
+    Query(query): Query<NotifyQuery>,
 ) -> AppResult<Json<Value>> {
-    process_send(state, secret, name, NotifyInput::from(payload)).await
+    process_send(state, user_id, name, NotifyInput::from(query)).await
 }
 
 async fn process_send(
     state: AppState,
-    secret: String,
+    user_id: String,
     name: String,
     input: NotifyInput,
 ) -> AppResult<Json<Value>> {
@@ -138,119 +145,175 @@ async fn process_send(
         return Err(AppError::BadRequest("invalid notification name".into()));
     }
 
-    let device: Option<Device> = sqlx::query_as::<_, Device>(
-        "SELECT id, webhook_secret, apns_token, apns_env, device_name, created_at, last_seen_at FROM devices WHERE webhook_secret = ?",
+    let now = models::now_unix();
+
+    let user_exists: Option<String> = sqlx::query_scalar("SELECT id FROM users WHERE id = ?")
+        .bind(&user_id)
+        .fetch_optional(&state.db)
+        .await?;
+    if user_exists.is_none() {
+        return Err(AppError::NotFound);
+    }
+
+    sqlx::query("UPDATE users SET last_seen_at = ? WHERE id = ?")
+        .bind(now)
+        .bind(&user_id)
+        .execute(&state.db)
+        .await?;
+
+    state.rate_limiter.check(&user_id)?;
+    rate_limit::check_monthly_quota(&state.db, &user_id, state.config.monthly_quota).await?;
+
+    let devices: Vec<(String, String)> = sqlx::query_as::<_, (String, String)>(
+        "SELECT id, apns_token FROM devices WHERE user_id = ?",
     )
-    .bind(&secret)
-    .fetch_optional(&state.db)
+    .bind(&user_id)
+    .fetch_all(&state.db)
     .await?;
-    let device = device.ok_or(AppError::NotFound)?;
 
-    state.rate_limiter.check(&device.id)?;
-    rate_limit::check_monthly_quota(&state.db, &device.id, state.config.monthly_quota).await?;
+    if devices.is_empty() {
+        rate_limit::record_log_row(
+            &state.db,
+            &user_id,
+            None,
+            Some(&name),
+            "no_devices",
+            None,
+            None,
+            now,
+        )
+        .await?;
+        return Err(AppError::DeviceGone);
+    }
 
-    let sound = map_sound(input.sound.as_deref());
     let payload = ApnsPayload {
         name: name.clone(),
         title: input.title,
         body: input.text,
-        sound,
+        sound: map_sound(input.sound),
         thread_id: input.thread_id,
         time_sensitive: input.is_time_sensitive,
         default_url: input.default_action_url,
         input: input.input,
     };
 
-    match state.apns.send(&device.apns_token, payload).await {
-        Ok(outcome) => {
-            tracing::info!(
-                device_id_prefix = %short_id(&device.id),
-                name = %name,
-                apns_status = outcome.apns_status,
-                "notification sent"
-            );
-            rate_limit::record_notification(
-                &state.db,
-                &device.id,
-                Some(&name),
-                "sent",
-                Some(outcome.apns_status as i64),
-                outcome.apns_reason.as_deref(),
-                now_unix(),
-            )
-            .await?;
-            Ok(Json(serde_json::json!({})))
-        }
-        Err(ApnsError::DeviceGone { status, reason }) => {
-            tracing::warn!(
-                device_id_prefix = %short_id(&device.id),
-                apns_status = status,
-                apns_reason = %reason,
-                "device gone — deleting"
-            );
-            sqlx::query("DELETE FROM devices WHERE id = ?")
-                .bind(&device.id)
-                .execute(&state.db)
+    let send_futures = devices.iter().map(|(_id, token)| {
+        let payload = payload.clone();
+        let token = token.clone();
+        let apns = state.apns.clone();
+        async move { apns.send(&token, payload).await }
+    });
+    let results: Vec<Result<_, _>> = join_all(send_futures).await;
+
+    let mut any_succeeded = false;
+    let mut last_client_error: Option<(u16, String)> = None;
+    let mut last_server_error: Option<(u16, String)> = None;
+    let mut last_transport_error: Option<String> = None;
+
+    for ((device_id, _token), result) in devices.iter().zip(results) {
+        match result {
+            Ok(outcome) => {
+                let apns_status = outcome.apns_status as i64;
+                rate_limit::record_log_row(
+                    &state.db,
+                    &user_id,
+                    Some(device_id),
+                    Some(&name),
+                    "sent",
+                    Some(apns_status),
+                    outcome.apns_reason.as_deref(),
+                    now,
+                )
                 .await?;
-            Err(AppError::DeviceGone)
+                any_succeeded = true;
+            }
+            Err(ApnsError::DeviceGone { status, reason: _ }) => {
+                sqlx::query("DELETE FROM devices WHERE id = ?")
+                    .bind(device_id)
+                    .execute(&state.db)
+                    .await?;
+                rate_limit::record_log_row(
+                    &state.db,
+                    &user_id,
+                    None,
+                    Some(&name),
+                    "failed",
+                    Some(status as i64),
+                    Some("device gone"),
+                    now,
+                )
+                .await?;
+            }
+            Err(ApnsError::ClientError { status, reason }) => {
+                rate_limit::record_log_row(
+                    &state.db,
+                    &user_id,
+                    Some(device_id),
+                    Some(&name),
+                    "failed",
+                    Some(status as i64),
+                    Some(&reason),
+                    now,
+                )
+                .await?;
+                last_client_error = Some((status, reason));
+            }
+            Err(ApnsError::ServerError { status, reason }) => {
+                rate_limit::record_log_row(
+                    &state.db,
+                    &user_id,
+                    Some(device_id),
+                    Some(&name),
+                    "failed",
+                    Some(status as i64),
+                    Some(&reason),
+                    now,
+                )
+                .await?;
+                last_server_error = Some((status, reason));
+            }
+            Err(ApnsError::Transport(msg)) => {
+                rate_limit::record_log_row(
+                    &state.db,
+                    &user_id,
+                    Some(device_id),
+                    Some(&name),
+                    "failed",
+                    None,
+                    Some(&msg),
+                    now,
+                )
+                .await?;
+                last_transport_error = Some(msg);
+            }
+            Err(ApnsError::InvalidName(_)) => {
+                return Err(AppError::BadRequest("invalid name (apns)".into()));
+            }
         }
-        Err(ApnsError::ClientError { status, reason }) => {
-            rate_limit::record_notification(
-                &state.db,
-                &device.id,
-                Some(&name),
-                "failed",
-                Some(status as i64),
-                Some(&reason),
-                now_unix(),
-            )
-            .await?;
-            Err(AppError::ApnsRejected { status, reason })
-        }
-        Err(ApnsError::ServerError { status, reason }) => {
-            rate_limit::record_notification(
-                &state.db,
-                &device.id,
-                Some(&name),
-                "failed",
-                Some(status as i64),
-                Some(&reason),
-                now_unix(),
-            )
-            .await?;
-            Err(AppError::ApnsRejected { status, reason })
-        }
-        Err(ApnsError::Transport(msg)) => {
-            tracing::error!(
-                device_id_prefix = %short_id(&device.id),
-                error = %msg,
-                "apns transport error"
-            );
-            rate_limit::record_notification(
-                &state.db,
-                &device.id,
-                Some(&name),
-                "failed",
-                None,
-                Some(&msg),
-                now_unix(),
-            )
-            .await?;
-            Err(AppError::ApnsTransport(msg))
-        }
-        Err(ApnsError::InvalidName(msg)) => Err(AppError::BadRequest(msg)),
     }
+
+    if any_succeeded {
+        rate_limit::increment_monthly_usage(&state.db, &user_id, now).await?;
+        return Ok(Json(json!({})));
+    }
+
+    if let Some(msg) = last_transport_error {
+        return Err(AppError::ApnsTransport(msg));
+    }
+    if let Some((status, reason)) = last_client_error.or(last_server_error) {
+        return Err(AppError::ApnsRejected { status, reason });
+    }
+
+    Err(AppError::DeviceGone)
 }
 
-fn map_sound(raw: Option<&str>) -> Option<String> {
-    match raw {
-        None => None,
+/// Pushcut sound name → APNs `sound` field.
+/// `Some("vibrateOnly")` silences the alert (no `sound` key); any other named
+/// value collapses to APNs's `default` sound for v1; `None` stays unset.
+fn map_sound(sound: Option<String>) -> Option<String> {
+    match sound.as_deref() {
         Some("vibrateOnly") => None,
-        Some(_) => Some("default".into()),
+        Some(_) => Some("default".to_string()),
+        None => None,
     }
-}
-
-fn short_id(id: &str) -> &str {
-    let end = id.len().min(8);
-    &id[..end]
 }
