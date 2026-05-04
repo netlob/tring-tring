@@ -1,0 +1,7 @@
+//
+//  CurlExampleSheet.swift
+//  Tring Tring
+//
+
+// cURL example rendering lives inside WebhookURLBlock (see Design/Components/WebhookURLBlock.swift).
+// This file is intentionally empty to keep the master plan's file inventory honest.
