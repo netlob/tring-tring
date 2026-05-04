@@ -34,3 +34,4 @@ ios/**/.swiftpm/
 
 # Logs
 *.log
+/.claude/worktrees
