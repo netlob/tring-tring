@@ -4,7 +4,7 @@ Self-hosted iOS push notifications. Webhook in → push out. Drop-in compatible 
 
 - **iOS app**: native SwiftUI. Register on first launch, get your personal webhook URL.
 - **Backend**: Rust (axum + SQLite + Litestream), deploys to a ~€3.29/mo Hetzner VPS.
-- **Free tier**: 10 notifications/min per device, generous monthly quota — funded by the operator's coffee budget, not yours.
+- **100% free**: No paid features and a generous quota of 10 notifications/min per device, over 500k per month per device.
 
 ## Project status
 

@@ -4,7 +4,7 @@
 
 ## What this is
 
-A self-hosted iOS push notification service: receive a webhook → deliver an APNs push to a registered device. Drop-in compatible with Pushcut's webhook format. Rust backend on a single Hetzner VPS, SwiftUI iOS app. Designed to run a generous free tier (10/min per device, 100k–10M notifications/month) on a few euros of infrastructure.
+A self-hosted iOS push notification service: receive a webhook → deliver an APNs push to a registered device. Drop-in compatible with Pushcut's webhook format. Rust backend on a single Hetzner VPS, SwiftUI iOS app. Designed to run as a lifetime free app with a generous rate limit (10/min per device, 500k/month) scalable to millions of users on a few euros of infrastructure.
 
 ## Repo map
 

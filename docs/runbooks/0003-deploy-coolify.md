@@ -35,7 +35,7 @@ Per [ADR-0009](../adr/0009-containerized-deployment.md), the deployment unit is 
 
 ### 3. Set environment variables
 
-In the Environment Variables tab, set the values from [`CLAUDE.md`](../../CLAUDE.md#required-environment-variables-for-the-backend). Mark the secrets (`APNS_KEY_PEM`, `LITESTREAM_SECRET_ACCESS_KEY`) as protected.
+In the Environment Variables tab, set the values from `[CLAUDE.md](../../CLAUDE.md#required-environment-variables-for-the-backend)`. Mark the secrets (`APNS_KEY_PEM`, `LITESTREAM_SECRET_ACCESS_KEY`) as protected.
 
 For the APNs key on Coolify, set `APNS_KEY_PEM` to the **full text** of the `.p8` file (including `-----BEGIN PRIVATE KEY-----` lines). Leave `APNS_KEY_PATH` unset — the entrypoint prefers `APNS_KEY_PEM` when present.
 
@@ -93,7 +93,7 @@ services:
     image: ghcr.io/netlob/tring-tring:latest
     restart: unless-stopped
     ports:
-      - "127.0.0.1:8080:8080"
+      - "80:8080"
     volumes:
       - tring-data:/data
       - ./apns.p8:/run/secrets/apns.p8:ro
@@ -138,12 +138,15 @@ curl -fsS http://127.0.0.1:8080/healthz
 
 ## Failure modes
 
-- **`/data not writable, refusing to start`**: the volume isn't mounted, or it's mounted with the wrong permissions. On Coolify: confirm a volume is attached at `/data`. On `docker compose`: confirm the volume name in the `volumes:` block matches and the named volume isn't shadowed by a stale container.
-- **`APNS_BUNDLE_ID` mismatch errors at first push**: bundle id in the app server doesn't match the iOS app's actual bundle id. They must be identical.
+- `**/data not writable, refusing to start**`: the volume isn't mounted, or it's mounted with the wrong permissions. On Coolify: confirm a volume is attached at `/data`. On `docker compose`: confirm the volume name in the `volumes:` block matches and the named volume isn't shadowed by a stale container.
+- `**APNS_BUNDLE_ID` mismatch errors at first push**: bundle id in the app server doesn't match the iOS app's actual bundle id. They must be identical.
 - **Litestream errors but app keeps running**: per ADR-0010 this is by design. Check `journalctl` / `docker logs` for the specific S3 error (typically endpoint or bucket misconfig).
 
 ## Verified
 
-| Date | By | Notes |
-|---|---|---|
-| _pending_ | | First production deploy: build step 9. |
+
+| Date      | By  | Notes                                  |
+| --------- | --- | -------------------------------------- |
+| *pending* |     | First production deploy: build step 9. |
+
+
