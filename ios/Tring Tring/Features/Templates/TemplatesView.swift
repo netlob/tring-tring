@@ -17,7 +17,8 @@ struct TemplatesView: View {
         NavigationStack {
             content
                 .navigationTitle("Templates")
-                .toolbarTitleDisplayMode(.inline)
+                .toolbarTitleDisplayMode(.large)
+                .toolbarBackground(.hidden, for: .navigationBar)
                 .toolbar {
                     ToolbarItem(placement: .topBarTrailing) {
                         Button {
