@@ -118,46 +118,30 @@ pub async fn register_device(
         }
     };
 
-    let existing_device: Option<(String, String)> = sqlx::query_as::<_, (String, String)>(
-        "SELECT id, user_id FROM devices WHERE apns_token = ?",
+    // Atomic upsert keyed on apns_token. Concurrent register calls (e.g. the
+    // iOS app re-firing after sign-in with a cached token while iOS also
+    // delivers a fresh token via didRegisterForRemoteNotifications) used to
+    // race a check-then-INSERT and trip the UNIQUE constraint on apns_token.
+    let new_device_id = uuid::Uuid::new_v4().to_string();
+    let (device_id,): (String,) = sqlx::query_as::<_, (String,)>(
+        "INSERT INTO devices (id, user_id, apns_token, apns_env, device_name, created_at, last_seen_at) \
+         VALUES (?, ?, ?, ?, ?, ?, ?) \
+         ON CONFLICT(apns_token) DO UPDATE SET \
+             user_id      = excluded.user_id, \
+             apns_env     = excluded.apns_env, \
+             device_name  = excluded.device_name, \
+             last_seen_at = excluded.last_seen_at \
+         RETURNING id",
     )
+    .bind(&new_device_id)
+    .bind(&user_id)
     .bind(&payload.apns_token)
-    .fetch_optional(&state.db)
+    .bind(&payload.apns_env)
+    .bind(&payload.device_name)
+    .bind(now)
+    .bind(now)
+    .fetch_one(&state.db)
     .await?;
-
-    let device_id = match existing_device {
-        Some((id, _prior_user_id)) => {
-            sqlx::query(
-                "UPDATE devices SET user_id = ?, apns_env = ?, device_name = ?, last_seen_at = ? \
-                 WHERE id = ?",
-            )
-            .bind(&user_id)
-            .bind(&payload.apns_env)
-            .bind(&payload.device_name)
-            .bind(now)
-            .bind(&id)
-            .execute(&state.db)
-            .await?;
-            id
-        }
-        None => {
-            let new_device_id = uuid::Uuid::new_v4().to_string();
-            sqlx::query(
-                "INSERT INTO devices (id, user_id, apns_token, apns_env, device_name, created_at, last_seen_at) \
-                 VALUES (?, ?, ?, ?, ?, ?, ?)",
-            )
-            .bind(&new_device_id)
-            .bind(&user_id)
-            .bind(&payload.apns_token)
-            .bind(&payload.apns_env)
-            .bind(&payload.device_name)
-            .bind(now)
-            .bind(now)
-            .execute(&state.db)
-            .await?;
-            new_device_id
-        }
-    };
 
     let base = state.config.public_base_url.trim_end_matches('/');
     let webhook_url = format!("{base}/{user_id}/notifications/example");
